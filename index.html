@@ -155,9 +155,10 @@
 
     .main-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
     }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: repeat(2,1fr); } }
 
     .main-card {
       background: var(--white); border: 1px solid var(--border);
@@ -182,6 +183,15 @@
     .main-card:hover .main-card-arrow { color: var(--blue); }
 
     /* ── LEVEL 2: Sub cards ── */
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: .85rem; font-weight: 600; color: var(--text);
+      cursor: pointer; margin-bottom: 20px; transition: all .15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-back:hover { border-color: var(--blue); color: var(--blue); background: #EFF6FF; }
     .sub-header { margin-bottom: 16px; }
     .sub-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
     .sub-header p { font-size: .8rem; color: var(--muted); margin-top: 2px; }
@@ -359,6 +369,7 @@
 
     <!-- VIEW 2 -->
     <div class="view" id="viewSub">
+      <button class="btn-back" onclick="goHome()">← All Categories</button>
       <div class="sub-header">
         <h2 id="subTitle"></h2>
         <p id="subMeta"></p>
@@ -368,6 +379,7 @@
 
     <!-- VIEW 3 -->
     <div class="view" id="viewResults">
+      <button class="btn-back" id="resultsBackBtn">← Back</button>
       <div class="results-header">
         <div>
           <h2 id="resultsTitle"></h2>
@@ -454,15 +466,10 @@ for (const [main, d] of Object.entries(TAXONOMY)) d.subs.forEach(s => SUB_TO_MAI
 let all=[], currentMain='', currentSub='', activeSearch='', filtered=[], shown=0;
 
 async function loadAll() {
-  let page=0, done=false;
-  while (!done) {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=1000&offset=${page*1000}`, { headers:{apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`} });
-    const data = await r.json();
-    if (!Array.isArray(data)||!data.length) { done=true; break; }
-    all.push(...data);
-    if (data.length<1000) done=true;
-    page++;
-  }
+  // Fetch in one shot — we know we have under 2000 records
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=2000&offset=0`, { headers:{apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`} });
+  const data = await r.json();
+  if (Array.isArray(data)) all.push(...data);
   document.getElementById('totalCount').textContent = all.length.toLocaleString();
   buildMain();
 }
@@ -519,6 +526,7 @@ function openMain(main) {
   all.forEach(r => { if (r.category===main && matchFilters(r)) { const s=r.subcategory||'Other'; counts[s]=(counts[s]||0)+1; } });
   const total = Object.values(counts).reduce((a,b)=>a+b,0);
 
+  document.getElementById('resultsBackBtn') && (document.getElementById('resultsBackBtn').textContent = `← ${main}`);
   document.getElementById('subTitle').textContent = main;
   document.getElementById('subMeta').textContent = `${total} referral${total===1?'':'s'}`;
 
@@ -607,6 +615,10 @@ function makeItem(r) {
 /* NAV */
 function showView(id) { document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function goHome() { currentMain=''; currentSub=''; buildMain(); }
+function goBack() {
+  if (currentSub) { openMain(currentMain); }
+  else { goHome(); }
+}
 function showBC(main, sub) {
   const bc = document.getElementById('breadcrumb');
   bc.classList.add('show');
@@ -631,6 +643,7 @@ document.getElementById('sortSelect').addEventListener('change', applyResults);
 document.getElementById('dateFrom').addEventListener('change', ()=>currentSub?applyResults():currentMain?openMain(currentMain):buildMain());
 document.getElementById('dateTo').addEventListener('change',   ()=>currentSub?applyResults():currentMain?openMain(currentMain):buildMain());
 document.getElementById('loadMoreBtn').addEventListener('click', renderBatch);
+document.getElementById('resultsBackBtn').addEventListener('click', goBack);
 
 /* MODAL */
 const overlay=document.getElementById('overlay');
