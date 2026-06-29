@@ -467,16 +467,18 @@ let all=[], currentMain='', currentSub='', activeSearch='', filtered=[], shown=0
 
 async function loadAll() {
   // Fetch in one shot — we know we have under 2000 records
-  // Fetch all records in batches
-  let page=0;
-  while(true) {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=500&offset=${page*500}`, { headers:{apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`} });
-    const data = await r.json();
-    if (!Array.isArray(data)||!data.length) break;
-    all.push(...data);
-    if (data.length<500) break;
-    page++;
+  // Get total count then fetch all
+  const countRes = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=id`, {
+    headers:{apikey:ANON_KEY, Authorization:`Bearer ${ANON_KEY}`, Prefer:'count=exact', Range:'0-0', 'Range-Unit':'items'}
+  });
+  const cr = countRes.headers.get('content-range')||'';
+  const total = parseInt(cr.split('/')[1]||'2000');
+  const CHUNK=500, fetches=[];
+  for(let o=0;o<total;o+=CHUNK) {
+    fetches.push(fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=${CHUNK}&offset=${o}`,{headers:{apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`}}).then(r=>r.json()));
   }
+  const chunks = await Promise.all(fetches);
+  chunks.forEach(c=>{if(Array.isArray(c))all.push(...c);});
   document.getElementById('totalCount').textContent = all.length.toLocaleString();
   buildMain();
 }
