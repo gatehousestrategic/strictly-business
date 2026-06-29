@@ -481,6 +481,9 @@ async function loadAll() {
     if (data.length < 1000) break;
     offset += 1000;
   }
+  // Deduplicate by id
+  const seen = new Set();
+  all = all.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true; });
   document.getElementById('totalCount').textContent = all.length.toLocaleString();
   buildMain();
 }
