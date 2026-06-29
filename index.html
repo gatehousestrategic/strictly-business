@@ -467,9 +467,16 @@ let all=[], currentMain='', currentSub='', activeSearch='', filtered=[], shown=0
 
 async function loadAll() {
   // Fetch in one shot — we know we have under 2000 records
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=2000&offset=0`, { headers:{apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`} });
-  const data = await r.json();
-  if (Array.isArray(data)) all.push(...data);
+  // Fetch all records in batches
+  let page=0;
+  while(true) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=500&offset=${page*500}`, { headers:{apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`} });
+    const data = await r.json();
+    if (!Array.isArray(data)||!data.length) break;
+    all.push(...data);
+    if (data.length<500) break;
+    page++;
+  }
   document.getElementById('totalCount').textContent = all.length.toLocaleString();
   buildMain();
 }
