@@ -1,0 +1,17 @@
+{
+  "name": "strictly-business",
+  "version": "1.0.0",
+  "description": "Searchable referral database built on Supabase + deployed as a static site on Render.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "csv-parse": "^7.0.0"
+  }
+}
