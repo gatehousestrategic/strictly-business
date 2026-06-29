@@ -466,19 +466,14 @@ for (const [main, d] of Object.entries(TAXONOMY)) d.subs.forEach(s => SUB_TO_MAI
 let all=[], currentMain='', currentSub='', activeSearch='', filtered=[], shown=0, dataLoaded=false;
 
 async function loadAll() {
-  // Fetch in one shot — we know we have under 2000 records
-  // Get total count then fetch all
-  const countRes = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=id`, {
-    headers:{apikey:ANON_KEY, Authorization:`Bearer ${ANON_KEY}`, Prefer:'count=exact', Range:'0-0', 'Range-Unit':'items'}
+  if (dataLoaded) return;
+  dataLoaded = true;
+  all = [];
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=5000`, {
+    headers:{apikey:ANON_KEY, Authorization:`Bearer ${ANON_KEY}`}
   });
-  const cr = countRes.headers.get('content-range')||'';
-  const total = parseInt(cr.split('/')[1]||'2000');
-  const CHUNK=500, fetches=[];
-  for(let o=0;o<total;o+=CHUNK) {
-    fetches.push(fetch(`${SUPABASE_URL}/rest/v1/recommendations?select=*&order=name.asc&limit=${CHUNK}&offset=${o}`,{headers:{apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`}}).then(r=>r.json()));
-  }
-  const chunks = await Promise.all(fetches);
-  chunks.forEach(c=>{if(Array.isArray(c))all.push(...c);});
+  const data = await r.json();
+  if (Array.isArray(data)) all.push(...data);
   document.getElementById('totalCount').textContent = all.length.toLocaleString();
   buildMain();
 }
