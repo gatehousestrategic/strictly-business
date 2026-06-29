@@ -20,23 +20,18 @@ async function run() {
   let success = 0;
   for (let i = 0; i < records.length; i += 100) {
     const batch = records.slice(i, i + 100).map(r => ({
-      name:       r.name       || null,
-      service:    r.service    || null,
-      category:   r.category   || null,
-      contact:    r.contact    || null,
-      notes:      r.notes      || null,
-      date_added: r.date_added || null,
+      name:        r.name        || null,
+      service:     r.service     || null,
+      category:    r.category    || null,
+      subcategory: r.subcategory || null,
+      contact:     r.contact     || null,
+      notes:       r.notes       || null,
+      date_added:  r.date_added  || null,
     }));
-
     const { error } = await supabase.from('recommendations').insert(batch);
-    if (error) {
-      console.error(`Batch ${i}-${i+100} error:`, error.message);
-    } else {
-      success += batch.length;
-      process.stdout.write(`\r${success}/${records.length}`);
-    }
+    if (error) { console.error(`Batch error:`, error.message); }
+    else { success += batch.length; process.stdout.write(`\r${success}/${records.length}`); }
   }
-
   console.log(`\nDone! ${success} records uploaded.`);
 }
 
