@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Search Audit — howismy.site</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232563EB'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='18' font-family='sans-serif' font-weight='bold' fill='white'>G</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F4F3F0; --surface: #FFFFFF; --border: rgba(0,0,0,0.08);
+      --border-md: rgba(0,0,0,0.14); --text: #1A1A18; --muted: #6B6B66;
+      --hint: #A0A09A; --blue: #2563EB; --blue-bg: #EFF6FF; --blue-text: #1D4ED8;
+      --green: #3B6D11; --green-bg: #EAF3DE; --amber: #854F0B; --amber-bg: #FAEEDA;
+      --red: #A32D2D; --red-bg: #FCEBEB; --radius: 10px; --radius-lg: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 0 4rem; overflow-x: hidden; }
+    .nav { width: 100%; max-width: 920px; display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1rem; border-bottom: 0.5px solid var(--border); margin-bottom: 0; }
+    .logo { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; }
+    .logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+    .nav-tag { font-size: 11px; background: var(--blue-bg); color: var(--blue-text); padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .wrap { width: 100%; max-width: 920px; padding: 0 1rem; }
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* Inputs */
+    input[type="text"], input[type="password"] { width: 100%; padding: 11px 16px; border: 1px solid var(--border-md); border-radius: var(--radius); font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface); outline: none; box-shadow: var(--shadow-sm); transition: border-color 0.15s, box-shadow 0.15s; }
+    input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1), var(--shadow-sm); }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; border: none; text-decoration: none; transition: all 0.15s; }
+    .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(37,99,235,0.3), 0 4px 12px rgba(37,99,235,0.15); }
+    .btn-primary:hover { background: #1D4ED8; box-shadow: 0 2px 6px rgba(37,99,235,0.35), 0 6px 16px rgba(37,99,235,0.2); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-ghost { background: var(--surface); border: 1px solid var(--border-md); color: var(--muted); box-shadow: var(--shadow-sm); }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(0,0,0,0.2); background: #fff; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+    /* Input step */
+    .section-label { font-size: 11px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: 0.07em; margin: 1.75rem 0 0.75rem; }
+    .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 8px; margin-bottom: 0.5rem; }
+    .platform-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 0.75rem; cursor: pointer; text-align: center; user-select: none; box-shadow: var(--shadow-sm); transition: all 0.15s; }
+    .platform-card:hover { border-color: rgba(0,0,0,0.2); box-shadow: var(--shadow); }
+    .platform-card.sel { border: 1.5px solid var(--blue); background: var(--blue-bg); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+    .platform-card.sel .pname { color: var(--blue-text); }
+    .picon { font-size: 20px; color: var(--muted); margin-bottom: 5px; }
+    .platform-card.sel .picon { color: var(--blue); }
+    .pname { font-size: 12px; font-weight: 500; }
+    .ktag { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--muted); cursor: pointer; margin: 3px; box-shadow: var(--shadow-sm); }
+    .ktag:hover { color: var(--text); border-color: rgba(0,0,0,0.2); }
+    .input-row { display: flex; gap: 10px; align-items: center; margin: 1rem 0; }
+    .domain-input { flex: 1; font-size: 15px; }
+
+    /* Loading */
+    .loading-wrap { text-align: center; padding: 3rem 1rem 2.5rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-orb-wrap { position: relative; width: 96px; height: 96px; margin: 0 auto; }
+    .loading-orb-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--blue); opacity: 0.2; animation: orb-breathe 2s ease-out infinite; }
+    .loading-orb-ring2 { animation-delay: 1s; }
+    @keyframes orb-breathe { 0% { transform: scale(0.8); opacity: 0.3; } 100% { transform: scale(1.4); opacity: 0; } }
+    .loading-orb-spin { position: absolute; inset: -8px; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--blue); border-right-color: rgba(37,99,235,0.2); animation: orb-spin 1.6s linear infinite; }
+    @keyframes orb-spin { to { transform: rotate(360deg); } }
+    .loading-orb-icon { position: absolute; inset: 0; margin: auto; width: 64px; height: 64px; border-radius: 50%; background: var(--blue-bg); border: 1px solid rgba(37,99,235,0.15); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--blue); top: 16px; transition: opacity 0.25s ease; animation: orb-icon-pulse 1.8s ease-in-out infinite; }
+    .loading-orb-icon.swap { opacity: 0; }
+    @keyframes orb-icon-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .loading-progress-track { height: 3px; background: var(--border); border-radius: 2px; margin: 0 auto 1.25rem; max-width: 280px; overflow: hidden; }
+    .loading-progress-fill { height: 100%; border-radius: 2px; background: var(--blue); transition: width 0.5s ease; }
+    .loading-steps-minimal { display: flex; justify-content: center; gap: 8px; }
+    .lsm-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .lsm-dot.active { background: var(--blue); transform: scale(1.3); }
+    .lsm-dot.done { background: var(--green); }
+
+    /* Score section */
+    .score-section { display: grid; grid-template-columns: auto 1fr; gap: 2rem; padding: 1.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 1.5rem; align-items: center; box-shadow: var(--shadow); }
+    .gauge-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .gauge-svg { width: 140px; height: 80px; }
+    .gauge-score { font-size: 36px; font-weight: 700; line-height: 1; text-align: center; letter-spacing: -0.03em; }
+    .gauge-label { font-size: 12px; color: var(--hint); text-align: center; }
+    .score-right { display: flex; flex-direction: column; gap: 10px; }
+    .score-meaning { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+    .score-bands { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; align-items: center; }
+    .score-band { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .band-active-red { background: var(--red-bg); color: var(--red); }
+    .band-active-amber { background: var(--amber-bg); color: var(--amber); }
+    .band-active-green { background: var(--green-bg); color: var(--green); }
+    .band-inactive { background: var(--bg); color: var(--hint); border: 1px solid var(--border); }
+    .methodology-link { font-size: 11px; color: var(--blue); cursor: pointer; text-decoration: underline; margin-left: 4px; }
+    .methodology-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: 0.75rem; font-size: 12px; color: var(--muted); line-height: 1.6; display: none; }
+    .methodology-box.visible { display: block; }
+
+    /* Tabs */
+    .tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; align-items: center; }
+    .tab { padding: 9px 18px; font-size: 13px; font-weight: 500; color: var(--hint); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color 0.15s; }
+    .tab:hover { color: var(--muted); }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Platform cards */
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 12px; }
+    .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; box-shadow: var(--shadow-sm); }
+    .platform-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .platform-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .score-badge { margin-left: auto; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+    .finding-list { list-style: none; }
+    .finding-list li { font-size: 12.5px; color: var(--muted); padding: 6px 0; border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; gap: 6px; line-height: 1.55; }
+    .finding-list li:last-child { border-bottom: none; }
+
+    /* Gap analysis */
+    .gap-row { padding: 14px 0; border-bottom: 0.5px solid var(--border); }
+    .gap-row:last-child { border-bottom: none; }
+
+    /* Competitors */
+    .competitor-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 0.5px solid var(--border); }
+    .competitor-row:last-child { border-bottom: none; }
+    .your-tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--blue-bg); color: var(--blue-text); font-weight: 500; }
+
+    /* AEO cards */
+    .aeo-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+    .howto-accordion.open { max-height: 600px !important; }
+    .chevron.rotated { transform: rotate(90deg); }
+    .aeo-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .aeo-title { font-size: 14px; font-weight: 600; }
+    .impact-badge { font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 500; flex-shrink: 0; }
+    .impact-high { background: var(--green-bg); color: var(--green); }
+    .impact-med { background: var(--amber-bg); color: var(--amber); }
+    .impact-low { background: var(--blue-bg); color: var(--blue-text); }
+    .aeo-desc { font-size: 13px; color: var(--muted); line-height: 1.65; }
+    .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .ba-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+    .ba-label { font-size: 11px; font-weight: 600; margin-bottom: 5px; }
+    .ba-label.before { color: var(--red); }
+    .ba-label.after { color: var(--green); }
+    .ba-text { font-size: 12px; color: var(--muted); line-height: 1.55; font-style: italic; }
+    .cta-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+
+    /* Progress bar */
+    .progress-track { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; }
+
+    /* Error */
+    .error-box { background: var(--red-bg); border: 1px solid rgba(160,45,45,0.15); border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: var(--red); margin: 1rem 0; line-height: 1.6; }
+
+    /* History */
+    .history-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+    .history-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); }
+    .history-chip:hover { border-color: var(--blue); color: var(--blue); }
+    .history-score { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+    .modal-box { background: var(--surface); border-radius: var(--radius-lg); padding: 2rem; width: 360px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+
+    /* Gate card */
+    .gate-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem; max-width: 420px; margin: 4rem auto; text-align: center; box-shadow: var(--shadow); }
+    .gate-icon { width: 52px; height: 52px; background: var(--blue-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 22px; color: var(--blue); }
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      :root {
+        --bg: #ffffff !important; --surface: #ffffff !important; --border: #ddd !important;
+        --border-md: #ccc !important; --text: #1A1A18 !important; --muted: #444444 !important;
+        --hint: #666666 !important; --blue-text: #2A4FD9 !important;
+      }
+      body { background: #fff !important; padding: 0 !important; color: #1A1A18 !important; }
+      .nav, footer, .modal-overlay, .cta-bar, .export-btn, .btn-ghost, .tabs, #step-input, #step-loading, .score-bands, .history-bar, .methodology-link, .methodology-box { display: none !important; }
+      #step-results { display: block !important; }
+      .tab-panel { display: block !important; }
+      .tab-panel.print-hide { display: none !important; }
+      .tab-panel-title { display: block !important; font-size:14px; font-weight:600; margin-bottom:0.75rem; padding-bottom:6px; border-bottom:1px solid #ddd; color: #1A1A18 !important; }
+      .print-cover { display: flex !important; }
+      .print-section-break { page-break-before: always; }
+      .result-card, .aeo-card { page-break-inside: avoid; border: 1px solid #ddd !important; background: #fff !important; }
+      .gap-row, .competitor-row { page-break-inside: avoid; border: 1px solid #ddd !important; background: #fff !important; padding: 14px 16px !important; margin-bottom: 8px !important; border-radius: 8px; }
+      .howto-block { display: none !important; }
+    }
+    .print-cover { display: none; }
+    .tab-panel-title { display: none; }
+    @media (max-width: 600px) {
+      .before-after { grid-template-columns: 1fr; }
+      .score-section { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; flex-wrap: nowrap; }
+      .tab { font-size: 12px; padding: 8px 12px; }
+    }
+  </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="logo" href="/"><div class="logo-dot"></div>howismy.site</a>
+    <div class="nav-right">
+      <span class="nav-tag">AI Search Audit</span>
+      <a href="/dashboard" id="dashboard-link" class="btn btn-ghost btn-sm" style="display:none;font-size:11px;"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> My Account</a>
+      <a href="/admin" id="admin-panel-link" class="btn btn-ghost btn-sm" style="display:none;font-size:11px;"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Admin Dashboard</a>
+      <button class="btn btn-ghost btn-sm" id="admin-toggle-btn" onclick="toggleAdmin()" style="display:flex;align-items:center;gap:5px;">
+        <i class="ti ti-lock" aria-hidden="true" id="admin-icon"></i>
+        <span id="admin-btn-label" style="font-size:11px;">Admin</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Admin modal -->
+  <div class="modal-overlay" id="admin-modal" style="display:none;">
+    <div class="modal-box">
+      <h2 style="font-size:16px;font-weight:600;margin-bottom:6px;">Admin access</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6;">Enter your password to unlock AEO recommendations and export options.</p>
+      <input type="password" id="admin-pw-input" placeholder="Password" style="margin-bottom:10px;" onkeydown="if(event.key==='Enter')verifyAdmin()" />
+      <div id="admin-error" style="font-size:13px;color:var(--red);margin-bottom:10px;display:none;">Incorrect password.</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="verifyAdmin()">Unlock</button>
+        <button class="btn btn-ghost" onclick="hideAdminModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="wrap">
+
+
+
+    <!-- Input -->
+    <div class="step active" id="step-input">
+
+      <!-- Hero — breaks out of wrap to go full width -->
+      <div style="text-align:center;padding:3.5rem 2rem 3rem;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-top:0;background:linear-gradient(180deg,#EFF6FF 0%,#F4F3F0 100%);border-bottom:1px solid var(--border);margin-bottom:2.5rem;">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--muted);font-weight:500;margin-bottom:1.5rem;box-shadow:var(--shadow-sm);">
+          <span style="width:6px;height:6px;border-radius:50%;background:#22C55E;display:inline-block;"></span>
+          Audits 6 AI platforms including ChatGPT, Claude &amp; Gemini
+        </div>
+        <h1 style="font-size:clamp(28px,5vw,42px);font-weight:700;letter-spacing:-0.03em;line-height:1.15;margin-bottom:1rem;max-width:600px;margin-left:auto;margin-right:auto;">Is your business visible to AI?</h1>
+        <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:480px;margin:0 auto 2rem;">See how AI platforms describe your company when customers search — and get a clear score with actionable recommendations.</p>
+
+        <!-- Search input -->
+        <div style="max-width:560px;margin:0 auto;position:relative;">
+          <div style="display:flex;background:#fff;border:1.5px solid var(--border-md);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-lg);transition:border-color 0.15s,box-shadow 0.15s;" id="search-wrap">
+            <input class="domain-input" id="domain-input" type="text" placeholder="Enter a company name or domain…" onkeydown="if(event.key==='Enter')startAudit()" onfocus="document.getElementById('search-wrap').style.borderColor='#2563EB';document.getElementById('search-wrap').style.boxShadow='0 0 0 3px rgba(37,99,235,0.12),var(--shadow-lg)'" onblur="document.getElementById('search-wrap').style.borderColor='';document.getElementById('search-wrap').style.boxShadow='var(--shadow-lg)'"
+              style="flex:1;border:none;border-radius:0;box-shadow:none;font-size:15px;padding:14px 18px;background:transparent;" />
+            <button class="btn btn-primary" onclick="startAudit()" style="margin:6px;border-radius:10px;font-size:14px;font-weight:600;padding:10px 22px;">
+              Run audit <i class="ti ti-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform cards -->
+      <div style="margin-bottom:0.5rem;">
+        <div style="font-size:12px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Platforms included</div>
+        <div class="platform-grid">
+          <div class="platform-card sel" data-p="ChatGPT" onclick="toggleP(this)"><div class="picon"><i class="ti ti-brand-openai" aria-hidden="true"></i></div><div class="pname">ChatGPT</div></div>
+          <div class="platform-card sel" data-p="Perplexity" onclick="toggleP(this)"><div class="picon"><i class="ti ti-telescope" aria-hidden="true"></i></div><div class="pname">Perplexity</div></div>
+          <div class="platform-card sel" data-p="Google AI Overviews" onclick="toggleP(this)"><div class="picon"><i class="ti ti-search" aria-hidden="true"></i></div><div class="pname">Google AI</div></div>
+          <div class="platform-card sel" data-p="Claude" onclick="toggleP(this)"><div class="picon"><i class="ti ti-sparkles" aria-hidden="true"></i></div><div class="pname">Claude</div></div>
+          <div class="platform-card sel" data-p="Microsoft Copilot" onclick="toggleP(this)"><div class="picon"><i class="ti ti-world-search" aria-hidden="true"></i></div><div class="pname">Copilot</div></div>
+          <div class="platform-card sel" data-p="Gemini" onclick="toggleP(this)"><div class="picon"><i class="ti ti-diamond" aria-hidden="true"></i></div><div class="pname">Gemini</div></div>
+        </div>
+      </div>
+
+      <div id="input-error" class="error-box" style="display:none;"></div>
+    </div>
+
+    <!-- Auth wall -->
+    <div class="step" id="step-signup">
+      <div class="gate-card" style="max-width:440px;margin:3rem auto;">
+        <div class="gate-icon" style="background:var(--blue-bg);color:var(--blue);"><i class="ti ti-rocket" aria-hidden="true"></i></div>
+        <h1 style="font-size:18px;font-weight:600;margin-bottom:6px;">Create a free account to see your results</h1>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6;">Your audit for <strong id="signup-company-name" style="color:var(--blue);"></strong> is ready to run. Sign up free — no credit card required.</p>
+        <a id="signup-cta-btn" href="/login?redirect=/audit" class="btn btn-primary" style="display:block;width:100%;text-align:center;text-decoration:none;padding:12px;">Create free account <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+        <p style="font-size:12px;color:var(--muted);margin-top:12px;">Already have an account? <a href="/login?redirect=/audit" style="color:var(--blue);text-decoration:none;">Sign in</a></p>
+      </div>
+    </div>
+        <!-- Loading -->
+    <div class="step" id="step-loading">
+      <div class="loading-wrap">
+        <div class="loading-orb-wrap">
+          <div class="loading-orb-ring"></div>
+          <div class="loading-orb-ring loading-orb-ring2"></div>
+          <div class="loading-orb-spin"></div>
+          <div class="loading-orb-icon" id="loading-orb-icon"><i class="ti ti-search" aria-hidden="true"></i></div>
+        </div>
+
+        <p style="font-size:16px;font-weight:600;margin:1.75rem 0 6px;letter-spacing:-0.01em;">Auditing <span id="loading-domain" style="color:var(--blue);"></span></p>
+        <p style="font-size:13.5px;color:var(--muted);margin-bottom:1.75rem;min-height:20px;" id="loading-status">Connecting…</p>
+
+        <div class="loading-progress-track"><div class="loading-progress-fill" id="loading-progress" style="width:0%;"></div></div>
+
+        <div class="loading-steps-minimal" id="loading-steps-minimal">
+          <span class="lsm-dot" id="lsm1"></span>
+          <span class="lsm-dot" id="lsm2"></span>
+          <span class="lsm-dot" id="lsm3"></span>
+          <span class="lsm-dot" id="lsm4"></span>
+          <span class="lsm-dot" id="lsm5"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="step" id="step-results">
+      <div id="history-bar-wrap"></div>
+      <div id="results-inner"></div>
+      <div id="error-area"></div>
+    </div>
+
+  </main>
+
+  <footer style="margin-top:3rem;font-size:12px;color:var(--hint);text-align:center;padding-top:1rem;border-top:0.5px solid var(--border);width:100%;max-width:900px;">howismy.site</footer>
+
+  <script>
+    const PLATFORM_COLORS = {'ChatGPT':'#10a37f','Perplexity':'#6B4FBB','Google AI Overviews':'#4285F4','Claude':'#D4571A','Microsoft Copilot':'#0078D4','Gemini':'#1C69D4'};
+    let selectedPlatforms = new Set(['ChatGPT','Perplexity','Google AI Overviews','Claude','Microsoft Copilot','Gemini']);
+    let currentCompany = '';
+    let isAdmin = false;
+    let currentAudit = null;
+    let currentAuditId = null;
+
+    // Preview link support — for demos, bypasses signup wall and audit limits
+    const _previewParams = new URLSearchParams(window.location.search);
+    let previewToken = _previewParams.get('preview') || '';
+    let previewExp = parseInt(_previewParams.get('exp') || '0', 10) * 1000; // exp is seconds, convert to ms
+    let previewLinkId = _previewParams.get('link') || '';
+    if (previewToken) {
+      sessionStorage.setItem('previewToken', previewToken);
+      sessionStorage.setItem('previewExp', String(previewExp));
+      sessionStorage.setItem('previewLinkId', previewLinkId);
+    } else {
+      previewToken = sessionStorage.getItem('previewToken') || '';
+      previewExp = parseInt(sessionStorage.getItem('previewExp') || '0', 10);
+      previewLinkId = sessionStorage.getItem('previewLinkId') || '';
+    }
+    function isPreviewActive() {
+      return !!(previewToken && previewExp && Date.now() < previewExp);
+    }
+    let auditHistory = [];
+    let accessToken = '';
+    let hasSignedUp = false;
+    let currentUser = null;
+    let userProfile = null;
+
+    const _sb = window.supabase.createClient('https://wizxrpaikujoqrtpggtm.supabase.co', 'sb_publishable_Hfuc4hxXzlISTYjSW3swqg_-R_De-nO');
+
+    async function initAuth() {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        hasSignedUp = true;
+        const { data: profile } = await _sb.from('user_profiles').select('*').eq('id', currentUser.id).single();
+        userProfile = profile;
+        updateUserNav();
+      }
+    }
+    initAuth();
+
+    // Load audit from URL if audit_id param present (e.g. after recs payment)
+    async function loadAuditFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const auditId = params.get('audit_id');
+      const company = params.get('company');
+      if (auditId) {
+        show('step-loading');
+        startLoadingAnimation();
+        try {
+          const { data: { session } } = await _sb.auth.getSession();
+          const headers = { 'Content-Type': 'application/json' };
+          if (session) headers['X-User-Token'] = session.access_token;
+          const resp = await fetch('/api/audit/' + auditId, { headers });
+          const data = await resp.json();
+          if (data.audit) {
+            currentAudit = data.audit;
+            currentAuditId = auditId;
+            currentCompany = data.audit.company || company || '';
+            lsApiDone = true;
+            lsAuditData = { audit: data.audit, company: currentCompany, audit_id: auditId };
+            addToHistory(currentCompany, data.audit);
+            lsFinish();
+          }
+        } catch(e) {
+          show('step-input');
+        }
+      } else if (company) {
+        document.getElementById('domain-input').value = company;
+      }
+    }
+    loadAuditFromUrl();
+
+    function updateUserNav() {
+      if (!currentUser) return;
+      const navRight = document.querySelector('.nav-right');
+      if (!navRight || document.getElementById('user-nav-info')) return;
+      const plan = userProfile?.plan || 'free';
+      const used = userProfile?.audits_used || 0;
+      const limit = userProfile?.audits_limit || 1;
+      const el = document.createElement('span');
+      el.id = 'user-nav-info';
+      el.style.cssText = 'font-size:13px;color:var(--text);display:flex;align-items:center;gap:10px;';
+      // Admins don't get "My Account" — they get the Admin Dashboard link instead (shown via updateAdminBtn)
+      const myAccountLink = isAdmin ? '' : '<a href="/dashboard" style="color:var(--muted);text-decoration:none;font-size:12px;">My Account</a>';
+      el.innerHTML = '<span style="background:var(--blue);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">' + plan.charAt(0).toUpperCase()+plan.slice(1) + '</span><span style="font-weight:500;color:var(--text);">' + used + '/' + limit + ' audits</span>' + myAccountLink + '<a href="#" onclick="doSignOut(event)" style="color:var(--hint);text-decoration:none;font-size:12px;">Sign out</a>';
+      navRight.insertBefore(el, navRight.firstChild);
+      const dashLink = document.getElementById('dashboard-link');
+      if (dashLink) dashLink.style.display = 'none'; // already shown in user-nav-info
+    }
+
+    async function startCheckout(priceKey) {
+      if (!currentUser) { window.location.href = '/login?redirect=/audit'; return; }
+      const { data: { session } } = await _sb.auth.getSession();
+      const resp = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-User-Token': session?.access_token || '' },
+        body: JSON.stringify({ price_key: priceKey, user_id: currentUser.id, user_email: currentUser.email })
+      });
+      const data = await resp.json();
+      if (data.url) window.location.href = data.url;
+      else alert('Checkout failed. Please try again.');
+    }
+
+    async function doSignOut(e) {
+      e.preventDefault();
+      await _sb.auth.signOut();
+      window.location.href = '/login';
+    }
+
+    function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+
+    async function submitSignup(){
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const company = document.getElementById('signup-company-input').value.trim();
+      const errEl = document.getElementById('signup-error');
+      errEl.style.display='none';
+      if(!name){errEl.textContent='Please enter your full name.';errEl.style.display='block';return;}
+      if(!email||!isValidEmail(email)){errEl.textContent='Please enter a valid email address.';errEl.style.display='block';return;}
+      if(!company){errEl.textContent='Please enter your company name.';errEl.style.display='block';return;}
+      const btn=document.querySelector('#step-signup .btn-primary');
+      if(btn){btn.textContent='Saving…';btn.disabled=true;}
+      try{
+        const signupResp=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,company,audit_company:currentCompany})});
+        if(signupResp.status===409){
+          errEl.innerHTML='You\'ve already used your free audit. <a href="/audit" style="color:var(--blue);">Upgrade to run more.</a>';
+          errEl.style.display='block';
+          if(btn){btn.innerHTML='Get my free audit <i class="ti ti-arrow-right" aria-hidden="true"></i>';btn.disabled=false;}
+          return;
+        }
+      }catch(e){}
+      hasSignedUp=true;
+      if(btn){btn.innerHTML='Get my free audit <i class="ti ti-arrow-right" aria-hidden="true"></i>';btn.disabled=false;}
+      show('step-loading');startLoadingAnimation();
+      try{
+        const signupAuditHeaders = {'Content-Type':'application/json'};
+        if(isAdmin && accessToken){ signupAuditHeaders['X-Admin-Password'] = accessToken; }
+        const resp=await fetch('/api/audit',{method:'POST',headers:signupAuditHeaders,body:JSON.stringify({company:currentCompany,platforms:[...selectedPlatforms]})});
+        const text=await resp.text();
+        let json;try{json=JSON.parse(text);}catch(e){throw new Error('Server returned: '+text.substring(0,200));}
+        if(!resp.ok){
+          if(json.error==='audit_limit_reached'){
+            if(lsTimer)clearTimeout(lsTimer);
+            show('step-results');
+            document.getElementById('results-inner').innerHTML='';
+            document.getElementById('error-area').innerHTML=`<div style="text-align:center;padding:2rem 1rem;max-width:500px;margin:0 auto;">
+              <div style="width:56px;height:56px;background:var(--blue-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;">🚀</div>
+              <h2 style="font-size:20px;font-weight:600;margin-bottom:8px;letter-spacing:-0.02em;">You've used your free audit</h2>
+              <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1.75rem;">Upgrade to run more audits and unlock AI search recommendations for your business.</p>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.25rem;">
+                <button onclick="startCheckout('starter')" style="display:block;width:100%;padding:13px;background:var(--blue);color:#fff;border-radius:10px;border:none;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 0 20px rgba(79,110,247,0.3);">Starter — $15/month (10 audits) →</button>
+                <button onclick="startCheckout('pro')" style="display:block;width:100%;padding:13px;background:rgba(79,110,247,0.15);color:var(--blue-text);border-radius:10px;border:0.5px solid rgba(79,110,247,0.3);font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;">Pro — $35/month (25 audits)</button>
+                <button onclick="startCheckout('tokens5')" style="display:block;width:100%;padding:13px;background:transparent;color:var(--muted);border:0.5px solid var(--border-md);border-radius:10px;font-family:inherit;font-size:14px;cursor:pointer;">Just need a few? 5 tokens for $20</button>
+              </div>
+              <button class="btn btn-ghost" style="font-size:13px;" onclick="resetAudit()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+            </div>`;
+            return;
+          }
+          throw new Error(json.error||'Server error '+resp.status);
+        }
+        lsApiDone=true;
+        lsAuditData={audit:json.audit,company:currentCompany};
+        sessionStorage.setItem('hasAudited','1');
+        if(lsCurrent>=4){lsFinish();}
+      }catch(err){
+        if(lsTimer)clearTimeout(lsTimer);
+        show('step-results');document.getElementById('results-inner').innerHTML='';
+        document.getElementById('error-area').innerHTML=`<div style="text-align:center;padding:2rem 1rem;max-width:480px;margin:0 auto;">
+          <div style="width:56px;height:56px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;color:var(--red);"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+          <h2 style="font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:-0.02em;">Something went wrong</h2>
+          <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:1.5rem;">We couldn't finish this audit. This is usually temporary — please try again.</p>
+          <button class="btn btn-primary" onclick="resetAudit()" style="margin-bottom:8px;"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back and try again</button>
+        </div>`;
+      }
+    }
+
+    function show(id) { document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function setDomain(d) { document.getElementById('domain-input').value=d; }
+    function toggleP(el) {
+      const p=el.dataset.p;
+      if(selectedPlatforms.has(p)){if(selectedPlatforms.size<=2)return;selectedPlatforms.delete(p);el.classList.remove('sel');}
+      else{selectedPlatforms.add(p);el.classList.add('sel');}
+    }
+    function sc(s){return s>=70?'var(--green)':s>=50?'var(--amber)':'var(--red)';}
+    function sb(s){return s>=70?'var(--green-bg)':s>=50?'var(--amber-bg)':'var(--red-bg)';}
+    function hexForScore(s){return s>=70?'#3B6D11':s>=50?'#854F0B':'#A32D2D';}
+
+    // Auto admin login from sessionStorage
+    const savedAdminToken = sessionStorage.getItem('adminToken');
+    if (savedAdminToken) {
+      isAdmin = true;
+      hasSignedUp = true;
+      accessToken = savedAdminToken;
+      updateAdminBtn();
+      // Verify silently in background
+      fetch('/api/verify-admin', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:savedAdminToken})})
+        .then(r=>r.json()).then(d=>{ 
+          if(!d.ok){ sessionStorage.removeItem('adminToken'); isAdmin=false; hasSignedUp=false; accessToken=''; updateAdminBtn(); }
+        }).catch(()=>{});
+    }
+
+    // Admin
+    function updateAdminBtn() {
+      const btn=document.getElementById('admin-toggle-btn');
+      const icon=document.getElementById('admin-icon');
+      const label=document.getElementById('admin-btn-label');
+      const adminPanelLink=document.getElementById('admin-panel-link');
+      if(!btn)return;
+      if(isAdmin){
+        btn.style.cssText='background:#EFF6FF;border:0.5px solid #2563EB;color:#1D4ED8;display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit;';
+        icon.className='ti ti-lock-open';label.textContent='Admin on';
+        if(adminPanelLink)adminPanelLink.style.display='inline-flex';
+      }else{
+        btn.style.cssText='background:none;border:0.5px solid rgba(0,0,0,0.15);color:var(--text);display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit;';
+        icon.className='ti ti-lock';label.textContent='Admin';
+        if(adminPanelLink)adminPanelLink.style.display='none';
+      }
+      // Re-render user nav since isAdmin may have changed (e.g. hide My Account for admin)
+      const existingNav = document.getElementById('user-nav-info');
+      if (existingNav) existingNav.remove();
+      updateUserNav();
+    }
+    function toggleAdmin(){if(isAdmin){isAdmin=false;accessToken='';sessionStorage.removeItem('adminToken');updateAdminBtn();if(currentAudit)renderResults(currentAudit);}else{showAdminModal();}}
+    function showAdminModal(){document.getElementById('admin-modal').style.display='flex';setTimeout(()=>document.getElementById('admin-pw-input').focus(),100);}
+    function hideAdminModal(){document.getElementById('admin-modal').style.display='none';document.getElementById('admin-pw-input').value='';document.getElementById('admin-error').style.display='none';}
+    async function verifyAdmin(){
+      const pw=document.getElementById('admin-pw-input').value.trim();
+      if(!pw)return;
+      try{
+        const r=await fetch('/api/verify-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+        const d=await r.json();
+        if(d.ok){isAdmin=true;hasSignedUp=true;accessToken=pw;sessionStorage.setItem('adminToken',pw);updateAdminBtn();hideAdminModal();if(currentAudit)renderResults(currentAudit);}
+        else{document.getElementById('admin-error').style.display='block';}
+      }catch(e){document.getElementById('admin-error').textContent='Error.';document.getElementById('admin-error').style.display='block';}
+    }
+
+    const LS_ICONS = ['ti-search','ti-chart-bar','ti-shield-check','ti-git-compare','ti-bulb'];
+    const LS_SUBS  = ['Researching the company…','Asking ChatGPT, Gemini, Claude, and Perplexity…','Running an unbiased market test…','Comparing against real competitors…','Writing your action plan…'];
+    // Real-world timing: research+queries overlap (~12-18s), blind queries overlap (~8-12s more),
+    // then report generation is the longest single wait (~20-35s with the leaner 6000-token budget).
+    const LS_STEP_MS = [5000, 7000, 6000, 99999];
+    let lsTimer = null;
+    let lsCurrent = 0;
+    let lsApiDone = false;
+    let lsAuditData = null;
+    let lsProgressRaf = null;
+    let lsProgressVal = 0;
+    let lsProgressTarget = 0;
+    const LS_PROG_TARGETS = [15, 38, 58, 72, 90];
+
+    const LS_GEN_SUBMSGS = [
+      'Writing your action plan…',
+      'Still working — this report goes deeper than most audits…',
+      'Cross-checking competitor data…',
+      'Almost there — finalizing your full report…',
+    ];
+    let lsGenSubTimer = null;
+    let lsGenSubIdx = 0;
+
+    function lsSetStepUI(n) {
+      const orb = document.getElementById('loading-orb-icon');
+      if (orb) {
+        orb.classList.add('swap');
+        setTimeout(() => {
+          orb.innerHTML = `<i class="ti ${LS_ICONS[n-1]||'ti-bulb'}" aria-hidden="true"></i>`;
+          orb.classList.remove('swap');
+        }, 250);
+      }
+      for(let i=1;i<=5;i++){
+        const dot=document.getElementById('lsm'+i);if(!dot)continue;
+        dot.classList.remove('active','done');
+        if(i<n)dot.classList.add('done');
+        else if(i===n)dot.classList.add('active');
+      }
+      const sub=document.getElementById('loading-status');
+      if(sub&&n>=1&&n<=5)sub.textContent=LS_SUBS[n-1];
+    }
+
+    function lsAnimateProgress(){
+      if(lsProgressRaf)cancelAnimationFrame(lsProgressRaf);
+      function tick(){
+        if(lsProgressVal<lsProgressTarget){
+          lsProgressVal=Math.min(lsProgressTarget,lsProgressVal+0.25);
+          const p=document.getElementById('loading-progress');
+          if(p)p.style.width=lsProgressVal+'%';
+          lsProgressRaf=requestAnimationFrame(tick);
+        }
+      }
+      lsProgressRaf=requestAnimationFrame(tick);
+    }
+
+    function lsAdvance(n){
+      lsCurrent=n;lsSetStepUI(n);
+      lsProgressTarget=LS_PROG_TARGETS[n-1]||90;
+      lsAnimateProgress();
+      if(n===5)startGenSubMessages();
+    }
+
+    function startGenSubMessages(){
+      lsGenSubIdx=0;
+      const sub=document.getElementById('loading-status');
+      function next(){
+        lsGenSubTimer=setTimeout(()=>{
+          lsGenSubIdx=(lsGenSubIdx+1)%LS_GEN_SUBMSGS.length;
+          if(sub)sub.textContent=LS_GEN_SUBMSGS[lsGenSubIdx];
+          next();
+        },8000);
+      }
+      next();
+    }
+
+    function startLoadingAnimation(){
+      lsCurrent=0;lsApiDone=false;lsAuditData=null;
+      lsProgressVal=0;lsProgressTarget=0;
+      if(lsTimer)clearTimeout(lsTimer);
+      if(lsGenSubTimer)clearTimeout(lsGenSubTimer);
+      const orb = document.getElementById('loading-orb-icon');
+      if (orb) orb.innerHTML = `<i class="ti ${LS_ICONS[0]}" aria-hidden="true"></i>`;
+      lsAdvance(1);
+      function schedNext(step){
+        if(step>5)return;
+        lsTimer=setTimeout(()=>{
+          if(lsApiDone&&step>=4){lsFinish();return;}
+          lsAdvance(step);
+          schedNext(step+1);
+        },LS_STEP_MS[step-2]||9000);
+      }
+      schedNext(2);
+    }
+
+    function lsFinish(){
+      if(lsTimer)clearTimeout(lsTimer);
+      if(lsGenSubTimer)clearTimeout(lsGenSubTimer);
+      const orb = document.getElementById('loading-orb-icon');
+      if (orb) { orb.classList.add('swap'); setTimeout(()=>{orb.innerHTML='<i class="ti ti-check" aria-hidden="true"></i>';orb.classList.remove('swap');},250); }
+      for(let i=1;i<=5;i++){
+        const dot=document.getElementById('lsm'+i);if(!dot)continue;
+        dot.classList.remove('active');dot.classList.add('done');
+      }
+      const sub=document.getElementById('loading-status');
+      if(sub)sub.textContent='Done — loading your report…';
+      lsProgressTarget=100;lsAnimateProgress();
+      setTimeout(()=>{
+        if(lsAuditData){
+          currentAudit=lsAuditData.audit;
+          currentAuditId=lsAuditData.audit_id||null;
+          addToHistory(lsAuditData.company,lsAuditData.audit);
+          renderResults(lsAuditData.audit);
+        }
+      },700);
+    }
+
+    function setLS(n){lsAdvance(n);}
+    function switchTab(id,el){
+      const container=el.closest('.tabs');
+      if(container){container.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));}
+      else{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));}
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      el.classList.add('active');
+      const panel=document.getElementById('tab-'+id);
+      if(panel)panel.classList.add('active');
+    }
+    function resetAudit(){document.getElementById('domain-input').value='';document.getElementById('results-inner').innerHTML='';document.getElementById('error-area').innerHTML='';document.getElementById('input-error').style.display='none';for(let i=1;i<=5;i++){const e=document.getElementById('ls'+i);e.classList.remove('done','active-step');e.querySelector('i').className='ti ti-circle';}show('step-input');}
+    function scoreMeaning(s){if(s>=80)return'Highly visible to AI search';if(s>=65)return'Good AI search presence';if(s>=45)return'Moderate visibility — room to grow';if(s>=25)return'Low visibility — AI rarely surfaces this brand';return'Nearly invisible to AI search engines';}
+    function renderGauge(score,hex){const angle=Math.PI+(score/100)*Math.PI;const x2=70+60*Math.cos(angle);const y2=70+60*Math.sin(angle);return`<svg viewBox="0 0 140 80" class="gauge-svg" aria-hidden="true"><path d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="#E5E4E0" stroke-width="12" stroke-linecap="round"/>${score>0?`<path d="M 10 70 A 60 60 0 ${score>50?1:0} 1 ${x2} ${y2}" fill="none" stroke="${hex}" stroke-width="12" stroke-linecap="round"/>`:''}
+      </svg>`;}
+    function toggleMethodology(){const box=document.getElementById('methodology-box');if(box)box.classList.toggle('visible');}
+
+    // History
+    function addToHistory(company,audit){auditHistory=auditHistory.filter(h=>h.company!==company);auditHistory.unshift({company,audit});if(auditHistory.length>5)auditHistory=auditHistory.slice(0,5);renderHistoryBar();}
+    function renderHistoryBar(){const wrap=document.getElementById('history-bar-wrap');if(!wrap||auditHistory.length<2){if(wrap)wrap.innerHTML='';return;}let html='<div class="history-bar"><span style="font-size:11px;color:var(--hint);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Recent:</span>';auditHistory.forEach((h,i)=>{const s=Number(h.audit.overall_score)||50;const sc_hex=s>=70?'#3B6D11':s>=50?'#854F0B':'#A32D2D';const sc_bg=s>=70?'#EAF3DE':s>=50?'#FAEEDA':'#FCEBEB';html+=`<div class="history-chip" onclick="loadHistory(${i})">${h.audit.company||h.company}<span class="history-score" style="background:${sc_bg};color:${sc_hex};">${s}</span></div>`;});html+='</div>';wrap.innerHTML=html;}
+    function loadHistory(idx){const h=auditHistory[idx];if(!h)return;currentCompany=h.company;currentAudit=h.audit;renderResults(h.audit);}
+
+    async function startAudit(){
+      const val=document.getElementById('domain-input').value.trim();
+      if(!val){document.getElementById('domain-input').focus();return;}
+      currentCompany=val;
+      document.getElementById('loading-domain').textContent=val;
+      document.getElementById('loading-status').textContent='Connecting…';
+      document.getElementById('input-error').style.display='none';
+      document.getElementById('error-area').innerHTML='';
+      // If not signed up yet, show signup wall (unless valid preview link)
+      if(!currentUser&&!isAdmin&&!isPreviewActive()){
+        document.getElementById('signup-company-name').textContent=val;
+        show('step-signup');
+        return;
+      }
+      show('step-loading');startLoadingAnimation();
+      try{
+        const auditHeaders = {'Content-Type':'application/json'};
+        if(isAdmin && accessToken){ auditHeaders['X-Admin-Password'] = accessToken; }
+        if(previewToken && previewExp){ auditHeaders['X-Preview-Token'] = previewToken; auditHeaders['X-Preview-Exp'] = previewExp; if(previewLinkId){auditHeaders['X-Preview-Link']=previewLinkId;} }
+        if(currentUser) {
+          const { data: { session } } = await _sb.auth.getSession();
+          if(session) auditHeaders['X-User-Token'] = session.access_token;
+        }
+        const resp=await fetch('/api/audit',{method:'POST',headers:auditHeaders,body:JSON.stringify({company:val,platforms:[...selectedPlatforms]})});
+        const text=await resp.text();
+        let json;try{json=JSON.parse(text);}catch(e){throw new Error('Server returned: '+text.substring(0,200));}
+        if(!resp.ok){
+          if(json.error==='audit_limit_reached'){
+            if(lsTimer)clearTimeout(lsTimer);
+            show('step-results');
+            document.getElementById('results-inner').innerHTML='';
+            document.getElementById('error-area').innerHTML=`<div style="text-align:center;padding:2rem 1rem;max-width:500px;margin:0 auto;">
+              <div style="width:56px;height:56px;background:var(--blue-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;">🚀</div>
+              <h2 style="font-size:20px;font-weight:600;margin-bottom:8px;letter-spacing:-0.02em;">You've used your free audit</h2>
+              <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1.75rem;">Upgrade to run more audits and unlock AI search recommendations for your business.</p>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.25rem;">
+                <button onclick="startCheckout('starter')" style="display:block;width:100%;padding:13px;background:var(--blue);color:#fff;border-radius:10px;border:none;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 0 20px rgba(79,110,247,0.3);">Starter — $15/month (10 audits) →</button>
+                <button onclick="startCheckout('pro')" style="display:block;width:100%;padding:13px;background:rgba(79,110,247,0.15);color:var(--blue-text);border-radius:10px;border:0.5px solid rgba(79,110,247,0.3);font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;">Pro — $35/month (25 audits)</button>
+                <button onclick="startCheckout('tokens5')" style="display:block;width:100%;padding:13px;background:transparent;color:var(--muted);border:0.5px solid var(--border-md);border-radius:10px;font-family:inherit;font-size:14px;cursor:pointer;">Just need a few? 5 tokens for $20</button>
+              </div>
+              <button class="btn btn-ghost" style="font-size:13px;" onclick="resetAudit()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+            </div>`;
+            return;
+          }
+          if(json.error==='demo_link_limit_reached'){
+            if(lsTimer)clearTimeout(lsTimer);
+            show('step-results');
+            document.getElementById('results-inner').innerHTML='';
+            document.getElementById('error-area').innerHTML=`<div style="text-align:center;padding:2rem 1rem;max-width:500px;margin:0 auto;">
+              <div style="width:56px;height:56px;background:var(--amber-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;">⏱️</div>
+              <h2 style="font-size:20px;font-weight:600;margin-bottom:8px;letter-spacing:-0.02em;">Demo link limit reached</h2>
+              <p style="font-size:14px;color:var(--muted);line-height:1.6;">This demo link has reached its audit limit. Please ask for a new link to continue.</p>
+            </div>`;
+            return;
+          }
+          if(json.error==='platform_unavailable'){
+            if(lsTimer)clearTimeout(lsTimer);
+            show('step-results');
+            document.getElementById('results-inner').innerHTML='';
+            const platformList = (json.platforms||[]).join(', ');
+            document.getElementById('error-area').innerHTML=`<div style="text-align:center;padding:2rem 1rem;max-width:480px;margin:0 auto;">
+              <div style="width:56px;height:56px;background:var(--amber-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;color:var(--amber);"><i class="ti ti-refresh-alert" aria-hidden="true"></i></div>
+              <h2 style="font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:-0.02em;">One of the AI platforms is temporarily busy</h2>
+              <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:1.5rem;">${platformList ? platformList + ' had trouble responding just now. ' : ''}To keep your score fair and comparable, we don't run partial audits — we'll need every platform to respond. This is almost always temporary.</p>
+              <button class="btn btn-primary" onclick="resetAudit();setTimeout(()=>{document.getElementById('domain-input').value='${(currentCompany||'').replace(/'/g,"\\'")}';startAudit();},200);" style="margin-bottom:8px;"><i class="ti ti-refresh" aria-hidden="true"></i> Try again</button>
+              <p style="font-size:12px;color:var(--hint);">If this keeps happening, wait a minute and try again — high-traffic moments on AI providers usually resolve quickly.</p>
+            </div>`;
+            return;
+          }
+          throw new Error(json.error||'Server error '+resp.status);
+        }
+        lsApiDone=true;
+        lsAuditData={audit:json.audit,company:val,audit_id:json.audit_id||null};
+        sessionStorage.setItem('hasAudited','1');
+        if(lsCurrent>=4){lsFinish();}
+      }catch(err){
+        if(lsTimer)clearTimeout(lsTimer);
+        show('step-results');document.getElementById('results-inner').innerHTML='';
+        document.getElementById('error-area').innerHTML=`<div style="text-align:center;padding:2rem 1rem;max-width:480px;margin:0 auto;">
+          <div style="width:56px;height:56px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;color:var(--red);"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+          <h2 style="font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:-0.02em;">Something went wrong</h2>
+          <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:1.5rem;">We couldn't finish this audit. This is usually temporary — please try again.</p>
+          <button class="btn btn-primary" onclick="resetAudit()" style="margin-bottom:8px;"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back and try again</button>
+        </div>`;
+      }
+    }
+
+    function renderResults(audit){
+      const overall=Number(audit.overall_score)||50;
+      const co=audit.company||currentCompany;
+      const hex=hexForScore(overall);
+      const bandDefs=[{label:'0–24 Invisible',min:0,max:24},{label:'25–49 Low',min:25,max:49},{label:'50–69 Moderate',min:50,max:69},{label:'70–84 Good',min:70,max:84},{label:'85–100 Strong',min:85,max:100}];
+      const bandClass=overall>=70?'band-active-green':overall>=50?'band-active-amber':'band-active-red';
+      const bandsHtml=bandDefs.map(b=>{const a=overall>=b.min&&overall<=b.max;return`<span class="score-band ${a?bandClass:'band-inactive'}">${b.label}</span>`;}).join('');
+      const emailSubject=encodeURIComponent(`AI Search Audit: ${co} — Score ${overall}/100`);
+      const emailBody=encodeURIComponent(`Hi,\n\nI've completed an AI search visibility audit for ${co}.\n\nOverall Score: ${overall}/100 — ${audit.score_label||''}\n\n${audit.summary||''}\n\nI'd love to walk you through the findings and discuss how we can help improve your AI search presence.\n\nBest`);
+      const adminExportBtns=isAdmin?`<div style="margin-left:auto;display:flex;gap:6px;"><button class="btn btn-ghost btn-sm export-btn" onclick="exportPDF(false)" style="font-size:11px;"><i class="ti ti-file-download" aria-hidden="true"></i> Client PDF</button><button class="btn btn-ghost btn-sm export-btn" onclick="exportPDF(true)" style="font-size:11px;"><i class="ti ti-file-download" aria-hidden="true"></i> Full PDF</button><button class="btn btn-ghost btn-sm export-btn" id="img-export-btn" onclick="exportImage()" style="font-size:11px;"><i class="ti ti-photo-down" aria-hidden="true"></i> Image</button></div>`:'';
+      const aeoTab=`<div class="tab" onclick="switchTab('aeo',this)">AEO recommendations</div>`;
+
+      let html=`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:1.25rem;">
+        <div><h1 style="font-size:20px;font-weight:600;letter-spacing:-0.02em;">${co}</h1><p style="font-size:13px;color:var(--muted);margin-top:3px;">${audit.category||''}</p></div>
+        <button class="btn btn-ghost btn-sm" onclick="resetAudit()"><i class="ti ti-refresh" aria-hidden="true"></i> New audit</button></div>`;
+
+      html+=`<div class="score-section">
+        <div class="gauge-wrap">${renderGauge(overall,hex)}<div class="gauge-score" style="color:${hex};">${overall}<span style="font-size:16px;color:var(--muted);font-weight:400;">/100</span></div><div class="gauge-label">${audit.score_label||''}</div></div>
+        <div class="score-right">
+          <div class="score-meaning" style="color:${hex};">${scoreMeaning(overall)}</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">${audit.summary||''}</div>
+          <div class="score-bands">${bandsHtml}<span class="methodology-link" onclick="toggleMethodology()">How is this calculated?</span></div>
+          <div class="methodology-box" id="methodology-box">This score estimates how often this brand is surfaced in AI-generated responses across major platforms. It considers: brand entity recognition in AI training data, content depth and structure on the brand's website, third-party citations from AI-trusted sources, structured data and schema markup, local and directory presence, and social proof signals. A score of 0–24 means the brand is effectively invisible; 85–100 means consistently cited and recommended.</div>
+        </div></div>`;
+
+      html+=`<div class="tabs"><div class="tab active" onclick="switchTab('platform',this)">Platform breakdown</div><div class="tab" onclick="switchTab('gap',this)">Gap analysis</div><div class="tab" onclick="switchTab('competitor',this)">Competitor benchmark</div>${aeoTab}${adminExportBtns}</div>`;
+
+      if (audit.research_found === false) {
+        html+=`<div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;gap:12px;align-items:flex-start;">
+          <i class="ti ti-alert-triangle" style="color:var(--amber);font-size:18px;flex-shrink:0;margin-top:2px;" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">Limited web presence detected</div>
+            <div style="font-size:12.5px;color:var(--muted);line-height:1.6;">Our research step could not find substantive information about <strong>${co}</strong> through live web search — no product pages, press mentions, or third-party citations were found. This is not a tool error. It means AI platforms currently have very little indexed information to draw on, which directly explains the low scores across all platforms. The recommendations below will tell you exactly what to fix first.</div>
+          </div>
+        </div>`;
+      }
+
+      html+=`<div class="tab-panel active" id="tab-platform"><div class="tab-panel-title">Platform Breakdown</div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 1rem;line-height:1.6;"><i class="ti ti-info-circle" aria-hidden="true" style="color:var(--blue-text);margin-right:4px;"></i>ChatGPT, Gemini, Claude, and Perplexity are queried directly through their APIs. Google AI Overviews and Microsoft Copilot don't offer a public API for this, so those two are clearly marked as estimates. <a href="/faq" target="_blank" style="color:var(--blue-text);text-decoration:none;">Read how this works →</a></p>
+        <div class="results-grid">`;
+      (audit.platforms||[]).forEach(p=>{
+        const color=PLATFORM_COLORS[p.name]||'#888';
+        const estimatedBadge = p.estimated ? `<span style="font-size:10px;font-weight:600;color:var(--amber);background:var(--amber-bg);padding:2px 7px;border-radius:6px;margin-left:6px;">Estimated</span>` : '';
+        if (p.unavailable) {
+          html+=`<div class="result-card"><div class="platform-header"><div class="platform-dot" style="background:${color};"></div><span style="font-size:13px;font-weight:600;">${p.name}</span>${estimatedBadge}<span class="score-badge" style="background:rgba(0,0,0,0.06);color:var(--muted);">Unavailable</span></div><ul class="finding-list">${(p.findings||[]).map(f=>`<li><i class="ti ti-point-filled" aria-hidden="true" style="font-size:10px;margin-top:4px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul></div>`;
+        } else {
+          const s=Number(p.score)||50;
+          html+=`<div class="result-card"><div class="platform-header"><div class="platform-dot" style="background:${color};"></div><span style="font-size:13px;font-weight:600;">${p.name}</span>${estimatedBadge}<span class="score-badge" style="background:${sb(s)};color:${sc(s)};">${s}/100</span></div><div style="margin-bottom:10px;"><div class="progress-track"><div class="progress-fill" style="width:${s}%;background:${color};"></div></div></div><ul class="finding-list">${(p.findings||[]).map(f=>`<li><i class="ti ti-point-filled" aria-hidden="true" style="font-size:10px;margin-top:4px;flex-shrink:0;"></i>${f}</li>`).join('')}</ul></div>`;
+        }
+      });
+      html+=`</div></div>`;
+
+      html+=`<div class="tab-panel" id="tab-gap"><div class="tab-panel-title">Gap Analysis</div>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 0.5rem;line-height:1.6;">How often ${co} appears vs. category leaders across key query types.</p>
+        <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1.25rem;font-size:12px;color:var(--muted);line-height:1.6;">
+          <i class="ti ti-info-circle" aria-hidden="true" style="color:var(--blue-text);margin-right:4px;"></i>
+          Each percentage below is how often a name showed up when we asked AI platforms an unbiased question with no company names mentioned — for example "what are the best options for ${audit.category||'this category'}?" If your business was mentioned on 1 of 4 platforms tested, that's 25%.
+        </div>`;
+      (audit.gap_analysis||[]).forEach(g=>{
+        const you=Number(g.brand_presence)||0;
+        const barColor = sc(you);
+        html+=`<div class="gap-row">
+          <div style="font-size:14px;margin-bottom:4px;">${g.query_type}</div>
+          ${g.notes?`<div style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:10px;">${g.notes}</div>`:''}
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="position:relative;flex:1;height:8px;background:var(--bg);border-radius:4px;">
+              <div style="position:absolute;left:0;top:0;height:8px;border-radius:4px;background:${barColor};width:${you}%;"></div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);white-space:nowrap;flex-shrink:0;">Mentioned on <strong style="color:${barColor};">${you}%</strong> of platforms</div>
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
+
+      const allComps=[{name:co,score:overall,isYou:true,note:audit.score_label||''},...(audit.competitors||[])].sort((a,b)=>b.score-a.score);
+      html+=`<div class="tab-panel" id="tab-competitor"><div class="tab-panel-title">Competitor Benchmark</div><p style="font-size:13px;color:var(--muted);margin:0 0 1rem;">Real competitor AI visibility scores in your category.</p>`;
+      allComps.forEach(c=>{html+=`<div class="competitor-row"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;">${c.name}${c.isYou?'<span class="your-tag">you</span>':''}</div>${c.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.note}</div>`:''}</div><div style="width:140px;flex-shrink:0;"><div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden;"><div style="height:100%;border-radius:3px;background:${c.isYou?'var(--blue)':'#B4B2A9'};width:${c.score}%;"></div></div></div><div style="font-size:13px;font-weight:600;color:${sc(c.score)};width:28px;text-align:right;">${c.score}</div></div>`;});
+      html+=`</div>`;
+
+      // AEO tab always rendered — paywall applied inside via checkAndRenderRecs()
+      html+=`<div class="tab-panel" id="tab-aeo"><div class="tab-panel-title">AEO Recommendations</div><div id="recs-content"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px;"><i class="ti ti-loader" style="animation:spin 1s linear infinite;display:inline-block;margin-right:6px;"></i>Checking access…</div></div></div>`;
+
+      document.getElementById('results-inner').innerHTML=html;
+      document.getElementById('error-area').innerHTML='';
+      renderHistoryBar();
+      show('step-results');
+      checkAndRenderRecs(audit);
+    }
+
+    function exportPDF(includeRecs){
+      const audit=currentAudit;const co=audit?(audit.company||currentCompany):currentCompany;
+      const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+      const overall=audit?(Number(audit.overall_score)||50):50;const hex=hexForScore(overall);
+      let cover=document.getElementById('print-cover');
+      if(!cover){cover=document.createElement('div');cover.id='print-cover';cover.className='print-cover';document.querySelector('.wrap').prepend(cover);}
+      cover.style.display='flex';
+      cover.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:4rem 3rem;font-family:'DM Sans',sans-serif;"><div><div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6B6B66;margin-bottom:3rem;">howismy.site</div><div style="width:48px;height:4px;background:${hex};margin-bottom:2rem;border-radius:2px;"></div><h1 style="font-size:42px;font-weight:600;letter-spacing:-0.03em;color:#1A1A18;line-height:1.1;margin-bottom:1rem;">${co}</h1><p style="font-size:16px;color:#6B6B66;margin-bottom:3rem;">${audit&&audit.category?audit.category:''}</p><div style="display:inline-flex;align-items:center;gap:1.5rem;padding:1.5rem 2rem;background:#F7F6F3;border-radius:12px;border-left:4px solid ${hex};"><div style="font-size:52px;font-weight:600;color:${hex};line-height:1;">${overall}</div><div><div style="font-size:13px;font-weight:600;color:#1A1A18;">${audit&&audit.score_label?audit.score_label:''}</div><div style="font-size:12px;color:#6B6B66;margin-top:2px;">AI Visibility Score / 100</div></div></div></div><div style="border-top:1px solid #E5E4E0;padding-top:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;"><div><div style="font-size:13px;font-weight:600;color:#1A1A18;">AI Search Visibility Audit</div><div style="font-size:12px;color:#6B6B66;margin-top:2px;">${includeRecs?'Full Report — Confidential':'Client Report'}</div></div><div style="font-size:12px;color:#A0A09A;">${date}</div></div></div>`;
+      document.querySelectorAll('.tab-panel').forEach(p=>{if(!includeRecs&&p.id==='tab-aeo'){p.classList.add('print-hide');}else{p.classList.remove('print-hide');p.style.display='block';}});
+      document.querySelectorAll('.tab-panel-title').forEach(t=>t.style.display='block');
+      document.querySelectorAll('.tabs').forEach(t=>t.style.display='none');
+      const origTitle = document.title;
+      document.title = co + ' — AI Search Visibility Audit';
+      window.print();
+      document.title = origTitle;
+      setTimeout(function(){document.querySelectorAll('.tabs').forEach(t=>t.style.display='');document.querySelectorAll('.tab-panel-title').forEach(t=>t.style.display='none');document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='none';p.classList.remove('print-hide');});var panels=document.querySelectorAll('.tab-panel');if(panels[0])panels[0].style.display='block';var tabs=document.querySelectorAll('.tab');tabs.forEach(t=>t.classList.remove('active'));if(tabs[0])tabs[0].classList.add('active');if(cover)cover.style.display='none';},1500);
+    }
+
+    async function exportImage(){
+      const co=currentAudit?(currentAudit.company||currentCompany):currentCompany;
+      const btn=document.getElementById('img-export-btn');
+      if(btn)btn.innerHTML='<i class="ti ti-loader" aria-hidden="true"></i> Generating...';
+      document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='block');
+      document.querySelectorAll('.tab-panel-title').forEach(t=>t.style.display='block');
+      document.querySelectorAll('.tabs').forEach(t=>t.style.visibility='hidden');
+      document.querySelectorAll('.export-btn,.cta-bar,.history-bar').forEach(el=>el.style.visibility='hidden');
+      try{
+        const el=document.getElementById('step-results');
+        const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#F7F6F3',logging:false});
+        const link=document.createElement('a');link.download=(co+' AI Audit.png').replace(/[^a-z0-9 .]/gi,'_');link.href=canvas.toDataURL('image/png');link.click();
+      }catch(err){alert('Image export failed: '+err.message);}
+      document.querySelectorAll('.tab-panel-title').forEach(t=>t.style.display='none');
+      document.querySelectorAll('.tabs').forEach(t=>t.style.visibility='');
+      document.querySelectorAll('.export-btn,.cta-bar,.history-bar').forEach(el=>el.style.visibility='');
+      var panels=document.querySelectorAll('.tab-panel');panels.forEach(p=>p.style.display='none');if(panels[0])panels[0].style.display='block';
+      var tabs=document.querySelectorAll('.tab');tabs.forEach(t=>t.classList.remove('active'));if(tabs[0])tabs[0].classList.add('active');
+      if(btn)btn.innerHTML='<i class="ti ti-photo-down" aria-hidden="true"></i> Image';
+    }
+
+    async function checkAndRenderRecs(audit) {
+      const recsEl = document.getElementById('recs-content');
+      if (!recsEl) return;
+
+      // Admin always sees recs
+      if (isAdmin) {
+        recsEl.innerHTML = buildRecsHtml(audit);
+        return;
+      }
+
+      // Check if user has access
+      let unlocked = false;
+      if (currentUser) {
+        try {
+          const params = currentAuditId ? '?audit_id=' + encodeURIComponent(currentAuditId) : '';
+          const { data: { session } } = await _sb.auth.getSession();
+          const r = await fetch('/api/recs-status' + params, {
+            headers: { 'X-User-Token': session?.access_token || '' }
+          });
+          const d = await r.json();
+          unlocked = d.unlocked;
+        } catch(e) {}
+      }
+
+      if (unlocked) {
+        recsEl.innerHTML = buildRecsHtml(audit);
+      } else {
+        recsEl.innerHTML = buildRecsPaywall();
+      }
+    }
+
+    function buildRecsHtml(audit) {
+      const emailSubject = encodeURIComponent('AI Search Audit: ' + (audit.company||currentCompany) + ' — Score ' + (audit.overall_score||50) + '/100');
+      const emailBody = encodeURIComponent('Hi,\n\nI\'ve completed an AI search visibility audit for ' + (audit.company||currentCompany) + '.\n\nOverall Score: ' + (audit.overall_score||50) + '/100\n\n' + (audit.summary||'') + '\n\nBest');
+      let html = '<p style="font-size:13px;color:var(--muted);margin:0 0 1.25rem;">How to close your AI search visibility gap — ranked by priority, do these in order.</p>';
+      const sortedRecs = [...(audit.aeo_recommendations||[])].sort((a,b) => (a.priority||99) - (b.priority||99));
+      sortedRecs.forEach((r, idx) => {
+        const ibg = r.impact==='high'?'impact-high':r.impact==='medium'?'impact-med':'impact-low';
+        const il = r.impact==='high'?'High impact':r.impact==='medium'?'Medium impact':'Quick win';
+        const priorityBadge = r.priority ? `<span style="font-size:11px;font-weight:600;color:var(--blue-text);background:var(--blue-bg);padding:2px 8px;border-radius:6px;margin-right:6px;">#${r.priority}</span>` : '';
+        const accordionId = 'howto-' + idx;
+        const howToHtml = (r.how_to && r.how_to.length) ? `<div class="howto-block" style="margin-top:12px;border-top:0.5px solid var(--border);padding-top:10px;">
+          <button class="howto-toggle-btn" onclick="document.getElementById('${accordionId}').classList.toggle('open');this.querySelector('.chevron').classList.toggle('rotated');" style="display:flex;align-items:center;gap:6px;width:100%;background:none;border:none;color:var(--blue-text);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0;">
+            <i class="ti ti-chevron-right chevron" style="font-size:14px;transition:transform 0.2s;" aria-hidden="true"></i> How to do this
+          </button>
+          <div id="${accordionId}" class="howto-accordion" style="max-height:0;overflow:hidden;transition:max-height 0.25s ease;">
+            <ol style="margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--text);line-height:1.7;">${r.how_to.map(step=>`<li style="margin-bottom:6px;">${step}</li>`).join('')}</ol>
+          </div>
+        </div>` : '';
+        html += `<div class="aeo-card"><div class="aeo-header">${priorityBadge}<div class="aeo-title">${r.title}</div><span class="impact-badge ${ibg}">${il}</span></div><div class="aeo-desc">${r.description}</div>${howToHtml}<div class="before-after"><div class="ba-box"><div class="ba-label before"><i class="ti ti-x" aria-hidden="true"></i> Before</div><div class="ba-text">${r.before}</div></div><div class="ba-box"><div class="ba-label after"><i class="ti ti-check" aria-hidden="true"></i> After AEO</div><div class="ba-text">${r.after}</div></div></div></div>`;
+      });
+      if (isAdmin) {
+        html += `<div class="cta-bar"><a href="mailto:os@gatehousestrategic.com?subject=${emailSubject}&body=${emailBody}" class="btn btn-primary"><i class="ti ti-mail" aria-hidden="true"></i> Email prospect</a><button class="btn btn-ghost" onclick="window.print()"><i class="ti ti-printer" aria-hidden="true"></i> Print</button></div>`;
+      }
+      return html;
+    }
+
+    function buildRecsPaywall() {
+      return `<div style="text-align:center;padding:2.5rem 1rem;max-width:480px;margin:0 auto;">
+        <div style="width:56px;height:56px;background:var(--amber-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;color:var(--amber);"><i class="ti ti-bulb"></i></div>
+        <h3 style="font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:-0.01em;">Your AI optimisation plan</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:0.5rem;">Get 5 prioritised AEO recommendations — specific actions to improve how AI models discover and recommend your business.</p>
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin:1.25rem 0;text-align:left;">
+          <div style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:7px;">
+            <span><i class="ti ti-check" style="color:var(--green);margin-right:6px;"></i>Ranked by impact — high, medium, quick wins</span>
+            <span><i class="ti ti-check" style="color:var(--green);margin-right:6px;"></i>Before/after examples for each recommendation</span>
+            <span><i class="ti ti-check" style="color:var(--green);margin-right:6px;"></i>Specific to this company and their audit results</span>
+            <span><i class="ti ti-check" style="color:var(--green);margin-right:6px;"></i>One-time unlock — yours to keep</span>
+          </div>
+        </div>
+        <button onclick="unlockRecs()" style="display:block;width:100%;padding:13px;background:var(--blue);color:#fff;border-radius:10px;border:none;font-family:inherit;font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 0 24px rgba(79,110,247,0.3);margin-bottom:8px;">Unlock recommendations — $15</button>
+        ${!currentUser ? '<p style="font-size:12px;color:var(--muted);">You will be asked to sign in or create an account before checkout.</p>' : ''}
+        <p style="font-size:11px;color:var(--hint);margin-top:8px;">Agency plan ($75/mo) includes recommendations for all audits.</p>
+      </div>`;
+    }
+
+    async function unlockRecs() {
+      if (!currentUser) { window.location.href = '/login?redirect=/audit'; return; }
+      if (!currentAuditId) {
+        alert('Please wait for the audit to fully save, then try again.');
+        return;
+      }
+      // Store audit_id so success page can redirect back with results
+      sessionStorage.setItem('last_audit_id', currentAuditId);
+      const { data: { session } } = await _sb.auth.getSession();
+      const resp = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          price_key: 'recs',
+          user_id: currentUser.id,
+          user_email: currentUser.email,
+          audit_id: currentAuditId
+        })
+      });
+      const data = await resp.json();
+      if (data.url) window.location.href = data.url;
+      else alert('Checkout failed. Please try again.');
+    }
+
+  </script>
+</body>
+</html>
