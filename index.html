@@ -463,7 +463,7 @@ const TAXONOMY = {
 const SUB_TO_MAIN = {};
 for (const [main, d] of Object.entries(TAXONOMY)) d.subs.forEach(s => SUB_TO_MAIN[s] = main);
 
-let all=[], currentMain='', currentSub='', activeSearch='', filtered=[], shown=0;
+let all=[], currentMain='', currentSub='', activeSearch='', filtered=[], shown=0, dataLoaded=false;
 
 async function loadAll() {
   // Fetch in one shot — we know we have under 2000 records
